@@ -1,4 +1,5 @@
 module.exports = {
   Article: require("./ArticleSchema"),
-  Note: require("./NoteSchema")
+  Note: require("./NoteSchema"),
+  SavedArticle: require("./SavedSchema")
 };

@@ -6,6 +6,8 @@ var exphbs = require("express-handlebars");
 var cheerio = require("cheerio");
 var axios = require("axios");
 
+db = require("./models");
+
 var PORT = 3000;
 
 var app = express();
@@ -14,52 +16,92 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-// mongoose.connect();
+mongoose.connect("mongodb://localhost/mongoscrapedb", {
+  useNewUrlParser: true
+});
 
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
 app.get("/", function(req, res) {
-  res.render("index");
+  db.Article.find()
+    .then(function(dbResult) {
+      var data = { result: dbResult };
+      res.render("index", data);
+    })
+    .catch(function(error) {
+      console.log(error);
+    });
 });
 
 app.get("/scrape", function(req, res) {
   axios.get("https://www.nytimes.com/section/sports").then(function(response) {
     var $ = cheerio.load(response.data);
 
-    var results = [];
-
     $("div.css-10wtrbd").each(function(i, element) {
-      var title = $(element)
+      var results = {};
+
+      results.title = $(element)
         .children("h2")
         .children("a")
         .text();
-      var link = $(element)
-        .children("h2")
-        .children("a")
-        .attr("href");
-      var content = $(element)
+      results.link =
+        "https://www.nytimes.com" +
+        $(element)
+          .children("h2")
+          .children("a")
+          .attr("href");
+      results.content = $(element)
         .children("p")
         .text();
-      var author = $(element)
+      results.author = $(element)
         .children()
         .last()
         .children(".css-9voj2j")
         .children("span")
         .text();
+      mongoose.connection.db.dropDatabase();
 
-      results.push({
-        title: title,
-        content: content,
-        author: author,
-        link: "https://www.nytimes.com" + link
-      });
+      db.Article.create(results)
+        .then(function() {
+          res.redirect("/");
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
     });
-    res.json(results);
-    console.log(results);
+  });
+});
+app.get("/saved/articles", function(req, res) {
+  db.SavedArticle.find().then(function(dbResult) {
+    var data = { result: dbResult };
+    res.render("savedarticles", data);
   });
 });
 
+app.get("/save/:id", function(req, res) {
+  db.Article.findOne({ _id: req.params.id }).then(function(result) {
+    var saved = {
+      title: result.title,
+      link: result.link,
+      content: result.content,
+      author: result.author
+    };
+    db.SavedArticle.create(saved)
+      .then(function() {
+        db.Article.findOneAndRemove(req.params.id)
+          .then(function() {
+            res.redirect("/");
+          })
+          .catch(function(err) {
+            console.log(err);
+          });
+      })
+      .catch(function(error) {
+        res.send(error);
+      });
+  });
+});
 app.listen(PORT, function() {
   console.log(`Listening on port ${PORT}`);
 });
