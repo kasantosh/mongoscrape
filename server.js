@@ -6,6 +6,9 @@ var exphbs = require("express-handlebars");
 var cheerio = require("cheerio");
 var axios = require("axios");
 
+var MONGODB_URI =
+  process.env.MONGODB_URI || "mongodb://localhost/mongoscrapedb";
+
 db = require("./models");
 
 var PORT = 3000;
@@ -16,7 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-mongoose.connect("mongodb://localhost/mongoscrapedb", {
+mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true
 });
 
