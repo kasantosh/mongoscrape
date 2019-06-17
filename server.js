@@ -12,17 +12,17 @@ var app = express();
 
 var db = require("./models");
 
+var MONGODB_URI =
+  process.env.MONGODB_URI || "mongodb://localhost/mongoscrapedb";
+
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
-
-var MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost/mongoscrapedb";
-
-mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 
 app.get("/", function(req, res) {
   db.Article.find()
