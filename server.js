@@ -1,11 +1,12 @@
 var express = require("express");
 var mongoose = require("mongoose");
 var exphbs = require("express-handlebars");
-var db = require("./models");
 
 //Scraping packages
 var cheerio = require("cheerio");
 var axios = require("axios");
+
+var db = require("./models");
 
 var PORT = process.env.PORT || 3000;
 
