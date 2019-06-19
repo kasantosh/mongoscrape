@@ -13,8 +13,7 @@ var PORT = process.env.PORT || 3000;
 var app = express();
 
 var MONGODB_URI =
-  process.env.MONGODB_URI ||
-  "mongodb://kasantosh:mongopass123456@ds339177.mlab.com:39177/heroku_vjk9kb30";
+  process.env.MONGODB_URI || "mongodb://localhost/mongoscrapedb";
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 
